@@ -1,17 +1,24 @@
 Ocean::Syntax ocean-grammar_0.0a {
   main = (rule cut)* eof
-  rule = eol spc? versym spc '=' spc expr (spc? expr)*
-  expr = versym:rule | group | any | not | charclass | string | alt | counted
+  rule = eol spc? symver spc '=' (spc expr)+
+  expr = symver | focus | group | any | not | charclass | string | alt | counted
   group = '(' cut expr? cut (spc expr cut)* ')'
   any = '.' cut
   not = '!' cut spc? expr
-  charclass = '[' cut ']'? (!']' echars)* ']'
-  string = '\'' cut (echars | chars | '\\' .)* '\''
-  echars = '\\' [afnrtv]
-  chars = !'\\' .
+  charclass = '[' cut classchars ']'
+  classchars = '^'? ']'? (escape | '\\' cut noescchar | [^]])*
+  string = '\'' cut stringchars '\''
+  stringchars = (escape | '\\' cut noescchar | [^'])*
+  escape = '\\' (escchar | 'x' cut hexchar hexchar)
+  hexchar = [0-9a-f]
+  escchar = [afnrtv]
+  noescchar = !escchar .
   alt = expr spc '|' cut spc expr
-  counted = expr spc? ([?*+] cut)
-  versym = ([A-Za-z] [-.A-Za-z0-9]*):sym cut ('_' cut [-+.A-Za-z0-9]+)?:ver
+  counted = expr spc? countchar cut
+  countchar = [?*+]
+  symver = symbol cut version?
+  symbol = [A-Za-z] [-.A-Za-z0-9]*
+  version = '_' cut [-+.A-Za-z0-9]+
   spc = [\n\r\t ]+
   eol = '\r\n' | '\n' | '\r'
   eof = !.
@@ -20,23 +27,20 @@ Ocean::Syntax ocean-grammar_0.0a {
 Ocean::Syntax ocean-syntax_0.0a : ocean-grammar ocg {
   main = decl? cut (spc decl cut)* spc? eof
   decl = syntax | rules
-  syntax = 'Ocean::Syntax' cut spc versym inherit spc grammar-block
-  rules = 'Ocean::Rules' cut '<' language '>' spc versym inherit code-block
-  inherit = ( | spc ':' cut spc versym (spc as)? (spc ',' cut spc versym (spc as)?)* )
-  code-block = spc '{' cut !(eol '};' eol)*:code ocg.eof
-  grammar-block = spc '{' cut ocg.main:grammar
+  syntax = 'Ocean::Syntax' cut spc symver inherit spc grammar-block
+  rules = 'Ocean::Rules' cut '<' language '>' spc symver inherit code-block
+  inherit = ( | spc ':' cut spc symver (spc as)? (spc ',' cut spc symver (spc as)?)* )
+  code-block = spc '{' cut !(eol '};' eol)* ocg.eof
+  grammar-block = spc '{' cut ocg.main
   ocg.eof = eol '};' (eol | spc eol)
-  language = versym
+  language = symver
   eof = !.
 };
 
-Ocean::Rules<perl> ocean-chars_1.0 : ocean-syntax_0.* {
-  TOP = print "Counted ", $$.chars, "\n";
-  TOP.chars = length($$.text);
-};
-
-Ocean::Rules<perl> ocean-find-bs_1.0 : ocean-syntax_0.* {
+Ocean::Rules<perl> ocean-test_1.0 : ocean-syntax {
   TOP.find = 'b';
-  TOP = print "Found ", $$.found, " b's\n";
-  TOP.found = $_ = $$.text; s/[^$$.find]//g; length($_);
+  TOP = print "Counted ", $$.chars, ", found ", $$.found, " b and e's\n";
+  TOP.chars = length($$.text);
+  rules.find = 'e';
+  TOP.found = $_ = $$.text; s/[^$$.find]//g; $$.found + length($_);
 };
