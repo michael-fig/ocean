@@ -1,33 +1,43 @@
 Ocean::Syntax ocean-grammar_0.0a {
-main = rule? cut (_ rule cut)* eof
-rule = versym _ '=' _ expr
-expr = versym
-versym = ([A-Za-z] [-.A-Za-z0-9]):sym cut ('_' cut [-+.A-Za-z0-9]+)?:ver
-_ = [\n\r\t ]+
+main = (rule cut)* eof
+rule = eol spc? versym spc '=' spc expr
+expr0 = versym:rule | group | any | not | charclass | string
+expr = expr0 | alt | counted
+group = '(' cut expr? cut (spc expr cut)* ')'
+any = '.' cut
+not = '!' cut spc? expr
+charclass = '[' cut ']'? (!']' echars)* ']'
+string = '\'' cut echars* '\''
+echars = '\\' cut [afnrtv\\\'] | chars
+chars = !'\\'.
+alt = expr0 spc '|' cut spc expr
+counted = expr0 spc? ([*?+] cut)
+versym = ([A-Za-z] [-.A-Za-z0-9]*):sym cut ('_' cut [-+.A-Za-z0-9]+)?:ver
+spc = [\n\r\t ]+
 eol = '\r\n' | '\n' | '\r'
 eof = !.
 };
 
 Ocean::Syntax ocean-syntax_0.0a : ocean-grammar og {
-main = decl? cut (_ decl cut)* _? eof
+main = decl? cut (spc decl cut)* spc? eof
 decl = syntax | rules
-syntax = 'Ocean::Syntax' cut _ versym inherit _ grammar-block
-rules = 'Ocean::Rules' cut '<' language '>' _ versym inherit code-block
-inherit = ( | _ ':' cut _ versym (_ as)? (_ ',' cut _ versym (_ as)?)* )
-code-block = _ '{' cut !(eol '};' eol)*:code og.eof
-grammar-block = _ '{' cut og.main:grammar
-og.eof = eol '};' (eol | _ eol)
+syntax = 'Ocean::Syntax' cut spc versym inherit spc grammar-block
+rules = 'Ocean::Rules' cut '<' language '>' spc versym inherit code-block
+inherit = ( | spc ':' cut spc versym (spc as)? (spc ',' cut spc versym (spc as)?)* )
+code-block = spc '{' cut !(eol '};' eol)*:code og.eof
+grammar-block = spc '{' cut og.main:grammar
+og.eof = eol '};' (eol | spc eol)
 language = versym
 eof = !.
 };
 
 Ocean::Rules<perl> ocean-chars_1.0 : ocean-syntax_0.* {
 TOP = print "Counted ", $$.chars, "\n";
-main[0].chars = length($$.text);
+TOP.chars = length($$.text);
 };
 
 Ocean::Rules<perl> ocean-find-bs_1.0 : ocean-syntax_0.* {
 TOP.find = 'b';
 TOP = print "Found ", $$.found, " b's\n";
-main[0].found = $_ = $$.text; s/[^$$.find]//g; length($_);
+TOP.found = $_ = $$.text; s/[^$$.find]//g; length($_);
 };
