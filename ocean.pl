@@ -1,4 +1,5 @@
 #! /usr/bin/perl
+# I see an open world...
 use warnings;
 use strict;
 
