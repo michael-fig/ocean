@@ -1,0 +1,10 @@
+* Actually implement Ocean (build a Perl generator, then regen the
+  bootstrap ocean.pl from Ocean sources).
+
+* Use Gush for wiring together grammars in nondeterministic ways.
+
+* Various parsers that would come in handy:
+
+ - one-pass C with cpp and inline assembly
+ - utf-8
+ - linker inputs (object files and scripts) to generate platform binaries
