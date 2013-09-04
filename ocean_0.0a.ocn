@@ -10,10 +10,9 @@ eof = !.
 
 Ocean::Syntax ocean-syntax_0.0a : ocean-grammar og {
 main = decl? cut (_ decl cut)* _? eof
-decl = syntax | rules | parse
+decl = syntax | rules
 syntax = 'Ocean::Syntax' cut _ versym inherit _ grammar-block
 rules = 'Ocean::Rules' cut '<' language '>' _ versym inherit code-block
-parse = 'Ocean::Parse' cut '<' language '>' _ versym code-block
 inherit = ( | _ ':' cut _ versym (_ as)? (_ ',' cut _ versym (_ as)?)* )
 code-block = _ '{' cut !(eol '};' eol)*:code og.eof
 grammar-block = _ '{' cut og.main:grammar
@@ -23,20 +22,12 @@ eof = !.
 };
 
 Ocean::Rules<perl> ocean-chars_1.0 : ocean-syntax_0.* {
+TOP = print "Counted ", $$.chars, "\n";
 main[0].chars = length($$.text);
 };
 
-Ocean::Parse<perl> ocean-chars {
-PARSE;
-print "Counted ", $$.chars, "\n";
-};
-
-Ocean::Rules<perl> ocean-search_1.0 : ocean-syntax_0.* {
+Ocean::Rules<perl> ocean-find-bs_1.0 : ocean-syntax_0.* {
+TOP.find = 'b';
+TOP = print "Found ", $$.found, " b's\n";
 main[0].found = $_ = $$.text; s/[^$$.find]//g; length($_);
-};
-
-Ocean::Parse<perl> ocean-search {
- $$.find = 'b';
- PARSE;
- print "Found ", $$.found, " b's\n";
 };
