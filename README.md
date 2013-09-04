@@ -13,4 +13,4 @@ Parsers are aggressively exploited, as in Piumarta's work for the STEPS project.
 but a full-fledged application framework that transforms simple grammars with rules in your favourite language into
 software agents that monitor and respond to data flows.
 
-Michael FiG, <ocean@michael.fig.org>, 2013-09-04
+Michael FiG <ocean@michael.fig.org>, 2013-09-04
