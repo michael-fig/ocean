@@ -27,9 +27,10 @@ Ocean::Syntax ocean-grammar_0.0a {
 Ocean::Syntax ocean-syntax_0.0a : ocean-grammar ocg {
   main = decl? cut (spc decl cut)* spc? eof
   decl = syntax | rules
-  syntax = 'Ocean::Syntax' cut spc symver inherit spc grammar-block
-  rules = 'Ocean::Rules' cut '<' language '>' spc symver inherit code-block
-  inherit = ( | spc ':' cut spc symver (spc as)? (spc ',' cut spc symver (spc as)?)* )
+  syntax = 'Ocean::Syntax' cut spc symver inherit? spc grammar-block
+  rules = 'Ocean::Rules' cut '<' language '>' spc symver inherit? code-block
+  inherit = spc ':' cut spc symver (spc as)? (spc ',' cut spc symver (spc as)?)*
+  as = symbol
   code-block = spc '{' cut !(eol '};' eol)* ocg.eof
   grammar-block = spc '{' cut ocg.main
   ocg.eof = eol '};' (eol | spc eol)
